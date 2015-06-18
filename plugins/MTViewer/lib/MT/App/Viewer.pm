@@ -40,6 +40,7 @@ sub view {
 
     ## Process the path info.
     my $uri = $app->param('uri') || $ENV{REQUEST_URI};
+    $uri =~ s/\?[^\?]*$//;
     my $blog_id = $app->param('blog_id')
         or return $app->errtrans("Invalid request.");
 
