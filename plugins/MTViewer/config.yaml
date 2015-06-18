@@ -15,3 +15,5 @@ applications:
         handler: MT::App::Viewer
         script: sub { MT->config->ViewScript }
 
+callbacks:
+    init_app: $MTViewer::Viewer::init_app
