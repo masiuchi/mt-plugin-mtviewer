@@ -40,12 +40,45 @@ sub view {
 
     ## Process the path info.
     my $uri = $app->param('uri') || $ENV{REQUEST_URI};
-    my $blog_id = $app->param('blog_id')
-        or return $app->errtrans("Invalid request.");
+    my $blog_id = $app->param('blog_id');
+
+    my $cfg = $app->config;
+    if ( !$blog_id ) {
+        my $idx = $cfg->IndexBasename || 'index';
+
+        my @url_terms = ( { url => $uri } );
+        if ( $uri !~ m!\Q/$idx(?:\.[^\.\/]+)?\E$! ) {
+            $uri .= '/' unless $uri =~ m!/$!;
+            push @url_terms,
+                (
+                '-or', { url => "${uri}${idx}" },
+                '-or', { url => { like => "${uri}${idx}.%" } }
+                );
+        }
+
+        # Load fileinfo by URL
+        require MT::Template;
+        require MT::PublishOption;
+        my $fi = MT->model('fileinfo')->load(
+            \@url_terms,
+            {   join => [
+                    'MT::Template',
+                    undef,
+                    {   type => { not => 'backup' },
+                        build_type =>
+                            { not => MT::PublishOption->DISABLED() },
+                        id => \' = fileinfo_template_id',
+                    }
+                ],
+            }
+
+        ) or return $app->errtrans("Invalid request.");
+
+        $blog_id = $fi->blog_id;
+    }
 
     ## Check ExcludeBlogs and IncludeBlogs to see if this blog is
     ## private or not.
-    my $cfg = $app->config;
     if ( my $inc_blogs = $cfg->IncludeBlogs ) {
         return $app->errtrans('Invalid request')
             unless grep { $_ == $blog_id } split ',', $inc_blogs;
