@@ -4,6 +4,8 @@
 ## 動作環境
 Movable Type 6 以降
 
+## メリット
+* スタティックパブリッシング用のタグ拡張プラグインを、ダイナミックパブリッシングでも利用できます。
 
 ## Installation
 1. Unpack the mt-plugin-mtviewer archive.
